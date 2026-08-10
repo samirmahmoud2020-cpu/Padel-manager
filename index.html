@@ -113,6 +113,17 @@ const money=n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2})+' 
 const isoToday=()=>new Date().toISOString().slice(0,10);
 const statusClass=s=>s==='مؤكد'?'confirmed':s==='عربون'?'deposit':s==='مكتمل'?'done':'cancel';
 
+// تفعيل الاتصال المباشر وإجبار الموبايل على مزامنة البيانات لحظياً
+database.ref('.info/connected').on('value', (snap) => {
+  if (snap.val() === true) {
+    $('sync-status').textContent = '🟢 متصل أونلاين';
+    $('sync-status').style.color = '#b7e7a4';
+  } else {
+    $('sync-status').textContent = '🟡 يعيد الاتصال...';
+    $('sync-status').style.color = '#ffe08a';
+  }
+});
+
 database.ref('padel_manager_db_v2').on('value', (snapshot) => {
   const val = snapshot.val();
   if (val) {
@@ -121,8 +132,6 @@ database.ref('padel_manager_db_v2').on('value', (snapshot) => {
     if(!db.customers) db.customers = [];
     if(!db.bookings) db.bookings = [];
     if(!db.expenses) db.expenses = [];
-    $('sync-status').textContent = '🟢 متصل أونلاين';
-    $('sync-status').style.color = '#b7e7a4';
   } else {
     syncData();
   }
@@ -191,10 +200,12 @@ function saveExpense(){let d=$('eDate').value,item=$('eItem').value.trim(),amoun
 function deleteExpense(id){db.expenses=db.expenses.filter(x=>x.id!==id);syncData()}
 function renderExpenses(){$('expenseRows').innerHTML=db.expenses.sort((a,b)=>b.date.localeCompare(a.date)).map(e=>`<tr><td>${formatDate(e.date)}</td><td>${esc(e.item)}</td><td>${money(e.amount)}</td><td>${esc(e.note||'')}</td><td><button class="danger" onclick="deleteExpense('${e.id}')">حذف</button></td></tr>`).join('')||'<tr><td colspan="5">لا توجد مصروفات</td></tr>'}
 function renderReports(){let from=$('rFrom').value,to=$('rTo').value,bs=db.bookings.filter(b=>b.date>=from&&b.date<=to&&b.status!=='ملغي'),ex=db.expenses.filter(e=>e.date>=from&&e.date<=to),hours=bs.reduce((s,b)=>s+ +b.duration,0),rev=bs.reduce((s,b)=>s+b.rate*b.duration,0),paid=bs.reduce((s,b)=>s+ +b.paid,0),expenses=ex.reduce((s,e)=>s+ +e.amount,0);
+ $('reportCards').icons=`<div class="card">الحجوزات<b>${bs.length}</b></div><div class="card">الساعات<b>${hours}</b></div><div class="card">الإيرادات<b>${money(rev)}</b></div><div class="card">المحصل<b>${money(paid)}</b></div><div class="card">صافي بعد المصروفات<b>${money(rev-expenses)}</b></div>`;
  $('reportCards').innerHTML=`<div class="card">الحجوزات<b>${bs.length}</b></div><div class="card">الساعات<b>${hours}</b></div><div class="card">الإيرادات<b>${money(rev)}</b></div><div class="card">المحصل<b>${money(paid)}</b></div><div class="card">صافي بعد المصروفات<b>${money(rev-expenses)}</b></div>`;
  let top=db.customers.map(c=>{let n=bs.filter(b=>b.customerId===c.id).length;return [c.name,n]}).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]).slice(0,10);$('reportText').innerHTML=top.length?'<ol>'+top.map(x=>`<li>${esc(x[0])} — ${x[1]} حجز</li>`).join('')+'</ol>':'لا توجد بيانات في الفترة المحددة'}
 function formatDate(s){return new Date(s+'T00:00:00').toLocaleDateString('en-US',{day:'2-digit',month:'short',year:'numeric'})}
 function backup(){let blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='padel-backup-'+isoToday()+'.json';a.click()}
 init();
 </script>
-</body></html>
+</body>
+</html>
