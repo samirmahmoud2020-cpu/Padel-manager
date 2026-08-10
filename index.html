@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Padel Manager</title>
+<title>Padel Manager — السحابي</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#f3f6f9;color:#1d2733}
 header{background:#173f63;color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center}
@@ -24,9 +24,9 @@ table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:9px;bord
 </head>
 <body>
 <header>
-  <h1>🏟️ Padel Manager</h1>
+  <h1>🏟️ Padel Manager — السحابي</h1>
   <div style="display:flex; gap:10px; align-items:center;">
-    <span id="sync-status">🟢 يعمل بكفاءة</span>
+    <span id="sync-status">🟢 متصل بالسحاب</span>
     <div id="clock"></div>
   </div>
 </header>
@@ -95,7 +95,8 @@ table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:9px;bord
 </div></div>
 
 <script>
-const STORAGE_KEY = 'padel_manager_db_clean';
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyuGrOGVMHU6XVLtqbAokNo3S7CUFS0TeH9oLoUFRYbo04GwQfowv0_1fHcpCM7tUWI/exec";
+
 let db = {customers:[], bookings:[], expenses:[], settings:{rate:400}};
 let editCustomerId = null;
 const $=id=>document.getElementById(id);
@@ -103,44 +104,57 @@ const money=n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2})+' 
 const isoToday=()=>new Date().toISOString().slice(0,10);
 const statusClass=s=>s==='مؤكد'?'confirmed':s==='عربون'?'deposit':s==='مكتمل'?'done':'cancel';
 
-function loadData() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    try { db = JSON.parse(saved); } catch(e) {}
+// تحميل البيانات من جوجل شيت أونلاين
+async function loadData() {
+  try {
+    const res = await fetch(SCRIPT_URL);
+    const json = await res.json();
+    if(json && json.bookings) {
+      db = json;
+    }
+  } catch(e) {
+    console.log("Loading from local fallback due to network");
   }
   if(!db.settings) db.settings = {rate:400};
   if(!db.customers) db.customers = [];
   if(!db.bookings) db.bookings = [];
   if(!db.expenses) db.expenses = [];
-}
-
-function syncData() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
   renderAll();
 }
 
-window.addEventListener('storage', (e) => {
-  if (e.key === STORAGE_KEY) {
-    loadData();
-    renderAll();
+// مزامنة وحفظ البيانات في جوجل شيت أونلاين فوراً
+async function syncData() {
+  renderAll(); // تحديث فوري للشاشة محلياً أولاً لسرعة الاستجابة
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(db)
+    });
+  } catch(e) {
+    console.error("Sync error", e);
   }
-});
+}
 
 function showTab(id,btn){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));$(id).classList.remove('hidden');document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');renderAll()}
-function init(){
- loadData();
+
+async function init(){
  ['dashDate','bookDate','eDate'].forEach(x=>$(x).value=isoToday());
  $('rFrom').value=isoToday().slice(0,8)+'01'; $('rTo').value=isoToday();
  for(let h=8;h<=23;h++) $('bStart').insertAdjacentHTML('beforeend',`<option value="${h}">${String(h).padStart(2,'0')}:00</option>`);
  setInterval(()=>{$('clock').textContent=new Date().toLocaleString('en-GB',{dateStyle:'medium',timeStyle:'short'})},1000);
- renderAll();
+ await loadData();
+ // تحديث تلقائي كل 10 ثواني عشان لو الموبايل كتب حاجة اللاب يشوفها فوراً
+ setInterval(loadData, 10000);
 }
+
 function renderAll(){renderDashboard();renderBookings();renderCustomers();renderExpenses();renderReports();fillCustomers()}
 function fillCustomers(){
  const cur=$('bCustomer').value; $('bCustomer').innerHTML='<option value="">— اختر العميل —</option>'+db.customers.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join(''); if(cur) $('bCustomer').value=cur; phoneAuto()
 }
 function phoneAuto(){const c=db.customers.find(x=>x.id==$('bCustomer').value);$('bPhone').value=c?.phone||''}
-function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;`'}[m]))}
 function getDayBookings(d){return db.bookings.filter(b=>b.date===d && b.status!=='ملغي')}
 function renderDashboard(){
  const d=$('dashDate').value||isoToday(), bs=getDayBookings(d); let rev=0,paid=0,hours=0;
