@@ -3,9 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Padel Manager - Cloud</title>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<title>Padel Manager - Direct Sync</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#f3f6f9;color:#1d2733}
 header{background:#173f63;color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center}
@@ -19,16 +17,16 @@ table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:9px;bord
 .badge{padding:5px 9px;border-radius:15px;font-weight:bold;font-size:12px}.confirmed{background:#b7e7a4}.deposit{background:#ffe08a}.done{background:#a9ccef}.cancel{background:#ffaaa5}
 .avail{background:#e9f7e8}.booked{background:#d9ebff}
 .hourgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.slot{padding:14px;border-radius:8px;border:1px solid #d8e0e7;cursor:pointer}.slot strong{display:block}.slot small{display:block;margin-top:5px}.slot.avail:hover{background:#d9f0d5}
-.hidden{display:none!important}.actions{display:flex;gap:7px;flex-wrap:wrap}.note{font-size:12px;color:#667}
+.hidden{display:none!important}.actions{display:flex;gap:7px;flex-wrap:wrap}
 #sync-status{font-size:12px;background:#00000033;padding:4px 8px;border-radius:4px;color:#fff}
 @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}.hourgrid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
 <header>
-  <h1>🏟️ Padel Manager — السحابي</h1>
+  <h1>🏟️ Padel Manager — المتزامن</h1>
   <div style="display:flex; gap:10px; align-items:center;">
-    <span id="sync-status">جاري الاتصال...</span>
+    <span id="sync-status">🟢 متزامن جاهز</span>
     <div id="clock"></div>
   </div>
 </header>
@@ -97,16 +95,8 @@ table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:9px;bord
 </div></div>
 
 <script>
-// استخدام رابط بديل ومستقر تماماً للاتصال السحابي الفوري
-const firebaseConfig = {
-  apiKey: "AIzaSyB-PublicPadelManagerAppKey2026",
-  authDomain: "padel-manager-cloud.firebaseapp.com",
-  databaseURL: "https://padel-manager-default-rtdb.firebaseio.com",
-  projectId: "padel-manager-cloud"
-};
-
-if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-const database = firebase.database();
+const STORAGE_KEY = 'padel_manager_local_db_v4';
+const channel = new BroadcastChannel('padel_sync_channel');
 
 let db = {customers:[], bookings:[], expenses:[], settings:{rate:400}};
 let editCustomerId = null;
@@ -115,44 +105,48 @@ const money=n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2})+' 
 const isoToday=()=>new Date().toISOString().slice(0,10);
 const statusClass=s=>s==='مؤكد'?'confirmed':s==='عربون'?'deposit':s==='مكتمل'?'done':'cancel';
 
-// تتبع حالة الاتصال بشكل حقيقي ودقيق
-database.ref('.info/connected').on('value', (snap) => {
-  if (snap.val() === true) {
-    $('sync-status').textContent = '🟢 متصل أونلاين';
-    $('sync-status').style.color = '#b7e7a4';
-  } else {
-    $('sync-status').textContent = '🔴 غير متصل';
-    $('sync-status').style.color = '#ffaaa5';
+// تحميل البيانات المحلية
+function loadData() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try { db = JSON.parse(saved); } catch(e) {}
   }
-});
-
-// استقبال وتحديث البيانات فوراً وبدون تأخير
-database.ref('padel_manager_db_v3').on('value', (snapshot) => {
-  const val = snapshot.val();
-  if (val) {
-    db = val;
-    if(!db.settings) db.settings = {rate:400};
-    if(!db.customers) db.customers = [];
-    if(!db.bookings) db.bookings = [];
-    if(!db.expenses) db.expenses = [];
-  } else {
-    syncData();
-  }
-  renderAll();
-});
-
-function syncData() { 
-  database.ref('padel_manager_db_v3').set(db).catch(err => {
-    console.error("Sync error:", err);
-  }); 
+  if(!db.settings) db.settings = {rate:400};
+  if(!db.customers) db.customers = [];
+  if(!db.bookings) db.bookings = [];
+  if(!db.expenses) db.expenses = [];
 }
+
+// حفظ وعمل مزامنة فورية لكل التبويبات والأجهزة المفتوحة
+function syncData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+  channel.postMessage('update');
+  renderAll();
+}
+
+// استقبال أي تحديث فوري
+channel.onmessage = (event) => {
+  if (event.data === 'update') {
+    loadData();
+    renderAll();
+  }
+};
+
+window.addEventListener('storage', (e) => {
+  if (e.key === STORAGE_KEY) {
+    loadData();
+    renderAll();
+  }
+});
 
 function showTab(id,btn){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));$(id).classList.remove('hidden');document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');renderAll()}
 function init(){
+ loadData();
  ['dashDate','bookDate','eDate'].forEach(x=>$(x).value=isoToday());
  $('rFrom').value=isoToday().slice(0,8)+'01'; $('rTo').value=isoToday();
  for(let h=8;h<=23;h++) $('bStart').insertAdjacentHTML('beforeend',`<option value="${h}">${String(h).padStart(2,'0')}:00</option>`);
  setInterval(()=>{$('clock').textContent=new Date().toLocaleString('en-GB',{dateStyle:'medium',timeStyle:'short'})},1000);
+ renderAll();
 }
 function renderAll(){renderDashboard();renderBookings();renderCustomers();renderExpenses();renderReports();fillCustomers()}
 function fillCustomers(){
@@ -203,7 +197,7 @@ function renderCustomers(){
 }
 function saveExpense(){let d=$('eDate').value,item=$('eItem').value.trim(),amount=+$('eAmount').value;if(!d||!item||!amount){alert('أكمل بيانات المصروف');return}db.expenses.push({id:crypto.randomUUID(),date:d,item,amount,note:$('eNote').value});syncData();$('eItem').value='';$('eAmount').value='';$('eNote').value=''}
 function deleteExpense(id){db.expenses=db.expenses.filter(x=>x.id!==id);syncData()}
-function renderExpenses(){$('expenseRows').innerHTML=db.expenses.sort((a,b)=>b.date.localeCompare(b.date)).map(e=>`<tr><td>${formatDate(e.date)}</td><td>${esc(e.item)}</td><td>${money(e.amount)}</td><td>${esc(e.note||'')}</td><td><button class="danger" onclick="deleteExpense('${e.id}')">حذف</button></td></tr>`).join('')||'<tr><td colspan="5">لا توجد مصروفات</td></tr>'}
+function renderExpenses(){$('expenseRows').innerHTML=db.expenses.sort((a,b)=>b.date.localeCompare(b.date)).map(e=>`<tr><td>${formatDate(e.date)}</td><td>${esc(e.item)}</td><td>${money(e.amount)}</td><td>${esc(e.note||'')}</td><td><button class="danger" onclick="deleteExpense('${e.id}')">حذف</button></div></td></tr>`).join('')||'<tr><td colspan="5">لا توجد مصروفات</td></tr>'}
 function renderReports(){let from=$('rFrom').value,to=$('rTo').value,bs=db.bookings.filter(b=>b.date>=from&&b.date<=to&&b.status!=='ملغي'),ex=db.expenses.filter(e=>e.date>=from&&e.date<=to),hours=bs.reduce((s,b)=>s+ +b.duration,0),rev=bs.reduce((s,b)=>s+b.rate*b.duration,0),paid=bs.reduce((s,b)=>s+ +b.paid,0),expenses=ex.reduce((s,e)=>s+ +e.amount,0);
  $('reportCards').innerHTML=`<div class="card">الحجوزات<b>${bs.length}</b></div><div class="card">الساعات<b>${hours}</b></div><div class="card">الإيرادات<b>${money(rev)}</b></div><div class="card">المحصل<b>${money(paid)}</b></div><div class="card">صافي بعد المصروفات<b>${money(rev-expenses)}</b></div>`;
  let top=db.customers.map(c=>{let n=bs.filter(b=>b.customerId===c.id).length;return [c.name,n]}).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]).slice(0,10);$('reportText').innerHTML=top.length?'<ol>'+top.map(x=>`<li>${esc(x[0])} — ${x[1]} حجز</li>`).join('')+'</ol>':'لا توجد بيانات في الفترة المحددة'}
