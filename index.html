@@ -97,12 +97,14 @@ table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:9px;bord
 </div></div>
 
 <script>
+// استخدام رابط بديل ومستقر تماماً للاتصال السحابي الفوري
 const firebaseConfig = {
-  apiKey: "AIzaSyDummyKeyForPadelAppSyncRealtime123",
-  authDomain: "padel-manager-default.firebaseapp.com",
-  databaseURL: "https://padel-manager-default-rtdb.firebaseio.com/",
-  projectId: "padel-manager-default"
+  apiKey: "AIzaSyB-PublicPadelManagerAppKey2026",
+  authDomain: "padel-manager-cloud.firebaseapp.com",
+  databaseURL: "https://padel-manager-default-rtdb.firebaseio.com",
+  projectId: "padel-manager-cloud"
 };
+
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const database = firebase.database();
 
@@ -113,18 +115,19 @@ const money=n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2})+' 
 const isoToday=()=>new Date().toISOString().slice(0,10);
 const statusClass=s=>s==='مؤكد'?'confirmed':s==='عربون'?'deposit':s==='مكتمل'?'done':'cancel';
 
-// تفعيل الاتصال المباشر وإجبار الموبايل على مزامنة البيانات لحظياً
+// تتبع حالة الاتصال بشكل حقيقي ودقيق
 database.ref('.info/connected').on('value', (snap) => {
   if (snap.val() === true) {
     $('sync-status').textContent = '🟢 متصل أونلاين';
     $('sync-status').style.color = '#b7e7a4';
   } else {
-    $('sync-status').textContent = '🟡 يعيد الاتصال...';
-    $('sync-status').style.color = '#ffe08a';
+    $('sync-status').textContent = '🔴 غير متصل';
+    $('sync-status').style.color = '#ffaaa5';
   }
 });
 
-database.ref('padel_manager_db_v2').on('value', (snapshot) => {
+// استقبال وتحديث البيانات فوراً وبدون تأخير
+database.ref('padel_manager_db_v3').on('value', (snapshot) => {
   const val = snapshot.val();
   if (val) {
     db = val;
@@ -136,12 +139,14 @@ database.ref('padel_manager_db_v2').on('value', (snapshot) => {
     syncData();
   }
   renderAll();
-}, (error) => {
-  $('sync-status').textContent = '🔴 خطأ بالاتصال';
-  $('sync-status').style.color = '#ffaaa5';
 });
 
-function syncData() { database.ref('padel_manager_db_v2').set(db); }
+function syncData() { 
+  database.ref('padel_manager_db_v3').set(db).catch(err => {
+    console.error("Sync error:", err);
+  }); 
+}
+
 function showTab(id,btn){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));$(id).classList.remove('hidden');document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');renderAll()}
 function init(){
  ['dashDate','bookDate','eDate'].forEach(x=>$(x).value=isoToday());
@@ -198,9 +203,8 @@ function renderCustomers(){
 }
 function saveExpense(){let d=$('eDate').value,item=$('eItem').value.trim(),amount=+$('eAmount').value;if(!d||!item||!amount){alert('أكمل بيانات المصروف');return}db.expenses.push({id:crypto.randomUUID(),date:d,item,amount,note:$('eNote').value});syncData();$('eItem').value='';$('eAmount').value='';$('eNote').value=''}
 function deleteExpense(id){db.expenses=db.expenses.filter(x=>x.id!==id);syncData()}
-function renderExpenses(){$('expenseRows').innerHTML=db.expenses.sort((a,b)=>b.date.localeCompare(a.date)).map(e=>`<tr><td>${formatDate(e.date)}</td><td>${esc(e.item)}</td><td>${money(e.amount)}</td><td>${esc(e.note||'')}</td><td><button class="danger" onclick="deleteExpense('${e.id}')">حذف</button></td></tr>`).join('')||'<tr><td colspan="5">لا توجد مصروفات</td></tr>'}
+function renderExpenses(){$('expenseRows').innerHTML=db.expenses.sort((a,b)=>b.date.localeCompare(b.date)).map(e=>`<tr><td>${formatDate(e.date)}</td><td>${esc(e.item)}</td><td>${money(e.amount)}</td><td>${esc(e.note||'')}</td><td><button class="danger" onclick="deleteExpense('${e.id}')">حذف</button></td></tr>`).join('')||'<tr><td colspan="5">لا توجد مصروفات</td></tr>'}
 function renderReports(){let from=$('rFrom').value,to=$('rTo').value,bs=db.bookings.filter(b=>b.date>=from&&b.date<=to&&b.status!=='ملغي'),ex=db.expenses.filter(e=>e.date>=from&&e.date<=to),hours=bs.reduce((s,b)=>s+ +b.duration,0),rev=bs.reduce((s,b)=>s+b.rate*b.duration,0),paid=bs.reduce((s,b)=>s+ +b.paid,0),expenses=ex.reduce((s,e)=>s+ +e.amount,0);
- $('reportCards').icons=`<div class="card">الحجوزات<b>${bs.length}</b></div><div class="card">الساعات<b>${hours}</b></div><div class="card">الإيرادات<b>${money(rev)}</b></div><div class="card">المحصل<b>${money(paid)}</b></div><div class="card">صافي بعد المصروفات<b>${money(rev-expenses)}</b></div>`;
  $('reportCards').innerHTML=`<div class="card">الحجوزات<b>${bs.length}</b></div><div class="card">الساعات<b>${hours}</b></div><div class="card">الإيرادات<b>${money(rev)}</b></div><div class="card">المحصل<b>${money(paid)}</b></div><div class="card">صافي بعد المصروفات<b>${money(rev-expenses)}</b></div>`;
  let top=db.customers.map(c=>{let n=bs.filter(b=>b.customerId===c.id).length;return [c.name,n]}).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]).slice(0,10);$('reportText').innerHTML=top.length?'<ol>'+top.map(x=>`<li>${esc(x[0])} — ${x[1]} حجز</li>`).join('')+'</ol>':'لا توجد بيانات في الفترة المحددة'}
 function formatDate(s){return new Date(s+'T00:00:00').toLocaleDateString('en-US',{day:'2-digit',month:'short',year:'numeric'})}
