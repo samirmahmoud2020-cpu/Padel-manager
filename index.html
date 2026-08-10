@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Padel Manager - Direct Sync</title>
+<title>Padel Manager</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#f3f6f9;color:#1d2733}
 header{background:#173f63;color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center}
@@ -18,15 +18,15 @@ table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:9px;bord
 .avail{background:#e9f7e8}.booked{background:#d9ebff}
 .hourgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.slot{padding:14px;border-radius:8px;border:1px solid #d8e0e7;cursor:pointer}.slot strong{display:block}.slot small{display:block;margin-top:5px}.slot.avail:hover{background:#d9f0d5}
 .hidden{display:none!important}.actions{display:flex;gap:7px;flex-wrap:wrap}
-#sync-status{font-size:12px;background:#00000033;padding:4px 8px;border-radius:4px;color:#fff}
+#sync-status{font-size:12px;background:#1b6ca8;padding:5px 10px;border-radius:6px;color:#fff;font-weight:bold}
 @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}.hourgrid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
 <header>
-  <h1>🏟️ Padel Manager — المتزامن</h1>
+  <h1>🏟️ Padel Manager</h1>
   <div style="display:flex; gap:10px; align-items:center;">
-    <span id="sync-status">🟢 متزامن جاهز</span>
+    <span id="sync-status">🟢 يعمل بكفاءة</span>
     <div id="clock"></div>
   </div>
 </header>
@@ -95,9 +95,7 @@ table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:9px;bord
 </div></div>
 
 <script>
-const STORAGE_KEY = 'padel_manager_local_db_v4';
-const channel = new BroadcastChannel('padel_sync_channel');
-
+const STORAGE_KEY = 'padel_manager_db_clean';
 let db = {customers:[], bookings:[], expenses:[], settings:{rate:400}};
 let editCustomerId = null;
 const $=id=>document.getElementById(id);
@@ -105,7 +103,6 @@ const money=n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2})+' 
 const isoToday=()=>new Date().toISOString().slice(0,10);
 const statusClass=s=>s==='مؤكد'?'confirmed':s==='عربون'?'deposit':s==='مكتمل'?'done':'cancel';
 
-// تحميل البيانات المحلية
 function loadData() {
   const saved = localStorage.getItem(STORAGE_KEY);
   if (saved) {
@@ -117,20 +114,10 @@ function loadData() {
   if(!db.expenses) db.expenses = [];
 }
 
-// حفظ وعمل مزامنة فورية لكل التبويبات والأجهزة المفتوحة
 function syncData() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-  channel.postMessage('update');
   renderAll();
 }
-
-// استقبال أي تحديث فوري
-channel.onmessage = (event) => {
-  if (event.data === 'update') {
-    loadData();
-    renderAll();
-  }
-};
 
 window.addEventListener('storage', (e) => {
   if (e.key === STORAGE_KEY) {
@@ -197,9 +184,9 @@ function renderCustomers(){
 }
 function saveExpense(){let d=$('eDate').value,item=$('eItem').value.trim(),amount=+$('eAmount').value;if(!d||!item||!amount){alert('أكمل بيانات المصروف');return}db.expenses.push({id:crypto.randomUUID(),date:d,item,amount,note:$('eNote').value});syncData();$('eItem').value='';$('eAmount').value='';$('eNote').value=''}
 function deleteExpense(id){db.expenses=db.expenses.filter(x=>x.id!==id);syncData()}
-function renderExpenses(){$('expenseRows').innerHTML=db.expenses.sort((a,b)=>b.date.localeCompare(b.date)).map(e=>`<tr><td>${formatDate(e.date)}</td><td>${esc(e.item)}</td><td>${money(e.amount)}</td><td>${esc(e.note||'')}</td><td><button class="danger" onclick="deleteExpense('${e.id}')">حذف</button></div></td></tr>`).join('')||'<tr><td colspan="5">لا توجد مصروفات</td></tr>'}
+function renderExpenses(){$('expenseRows').innerHTML=db.expenses.sort((a,b)=>b.date.localeCompare(b.date)).map(e=>`<tr><td>${formatDate(e.date)}</td><td>${esc(e.item)}</td><td>${money(e.amount)}</td><td>${esc(e.note||'')}</td><td><button class="danger" onclick="deleteExpense('${e.id}')">حذف</button></td></tr>`).join('')||'<tr><td colspan="5">لا توجد مصروفات</td></tr>'}
 function renderReports(){let from=$('rFrom').value,to=$('rTo').value,bs=db.bookings.filter(b=>b.date>=from&&b.date<=to&&b.status!=='ملغي'),ex=db.expenses.filter(e=>e.date>=from&&e.date<=to),hours=bs.reduce((s,b)=>s+ +b.duration,0),rev=bs.reduce((s,b)=>s+b.rate*b.duration,0),paid=bs.reduce((s,b)=>s+ +b.paid,0),expenses=ex.reduce((s,e)=>s+ +e.amount,0);
- $('reportCards').innerHTML=`<div class="card">الحجوزات<b>${bs.length}</b></div><div class="card">الساعات<b>${hours}</b></div><div class="card">الإيرادات<b>${money(rev)}</b></div><div class="card">المحصل<b>${money(paid)}</b></div><div class="card">صافي بعد المصروفات<b>${money(rev-expenses)}</b></div>`;
+ $('reportCards').innerHTML=`<div class="card">الحجوزات<b>${bs.length}</b></div><div class="card">الساعات<b>${hours}</b></div><div class="card">الإيرادات<b>${money(rev)}</b></div><div class="card">المحصل<b>${money(paid)}</b></div><br><div class="card">صافي بعد المصروفات<b>${money(rev-expenses)}</b></div>`;
  let top=db.customers.map(c=>{let n=bs.filter(b=>b.customerId===c.id).length;return [c.name,n]}).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]).slice(0,10);$('reportText').innerHTML=top.length?'<ol>'+top.map(x=>`<li>${esc(x[0])} — ${x[1]} حجز</li>`).join('')+'</ol>':'لا توجد بيانات في الفترة المحددة'}
 function formatDate(s){return new Date(s+'T00:00:00').toLocaleDateString('en-US',{day:'2-digit',month:'short',year:'numeric'})}
 function backup(){let blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='padel-backup-'+isoToday()+'.json';a.click()}
