@@ -3,151 +3,67 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Padel Manager — السحابي المطور</title>
+<title>Padel Manager</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#f3f6f9;color:#1d2733;transition:background 0.3s,color 0.3s}
+*{box-sizing:border-box}body{margin:0;font-family:Tahoma,sans-serif;background:#f3f6f9;color:#1d2733}
 header{background:#173f63;color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center}
 h1{margin:0;font-size:24px}.wrap{max-width:1400px;margin:auto;padding:18px}
 .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.tabs button{border:0;padding:11px 18px;border-radius:8px;background:#dfe8f0;cursor:pointer;font-weight:bold}.tabs button.active{background:#173f63;color:#fff}
-.panel{background:#fff;border-radius:12px;padding:18px;box-shadow:0 2px 10px #0000000c;margin-bottom:16px;transition:background 0.3s,color 0.3s}
-.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.card{padding:16px;border-radius:10px;background:#eef4f8;transition:background 0.3s}.card b{font-size:24px;display:block;margin-top:7px}
+.panel{background:#fff;border-radius:12px;padding:18px;box-shadow:0 2px 10px #0000000c;margin-bottom:16px}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.card{padding:16px;border-radius:10px;background:#eef4f8}.card b{font-size:24px;display:block;margin-top:7px}
 .form{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.form label{font-weight:bold;font-size:13px}.form input,.form select,.form textarea{width:100%;padding:9px;border:1px solid #ccd6df;border-radius:7px;margin-top:4px}.form textarea{min-height:60px}.full{grid-column:1/-1}
 button.primary{background:#1b6ca8;color:white;border:0;border-radius:7px;padding:10px 18px;cursor:pointer;font-weight:bold}.danger{background:#d9534f!important}.muted{color:#687785}
 table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:9px;border-bottom:1px solid #e4e9ee;text-align:right}th{background:#edf3f7}
 .badge{padding:5px 9px;border-radius:15px;font-weight:bold;font-size:12px}.confirmed{background:#b7e7a4;color:#1b4d13}.deposit{background:#ffe08a;color:#5a4300}.done{background:#a9ccef;color:#0b3b60}.cancel{background:#ffaaa5;color:#610b07}.maintenance{background:#d6d8db;color:#383d41}
 .avail{background:#e9f7e8}.booked{background:#d9ebff}.main-slot{background:#e2e3e5!important}
-.hourgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.slot{padding:14px;border-radius:8px;border:1px solid #d8e0e7;cursor:pointer}.slot strong{display:block}.slot small{display:block;margin-top:5px}.slot.avail:hover{background:#d9f0d5}
+.hourgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.slot{padding:14px;border-radius:8px;border:1px solid #d8e0e7;cursor:pointer}.slot strong{display:block}.slot small{display:block;margin-top:5px}
 .hidden{display:none!important}.actions{display:flex;gap:7px;flex-wrap:wrap}
-#sync-status{font-size:12px;background:#1b6ca8;padding:5px 10px;border-radius:6px;color:#fff;font-weight:bold}
-
-.fab{position:fixed;bottom:25px;left:25px;background:#28a745;color:#fff;width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:0 4px 15px rgba(0,0,0,0.3);cursor:pointer;z-index:900;border:none;}
-.whatsapp-btn{background:#25d366;color:#fff;padding:4px 8px;border-radius:5px;text-decoration:none;font-size:11px;font-weight:bold;display:inline-flex;align-items:center;gap:3px;}
-
-@media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}.hourgrid{grid-template-columns:repeat(2,1fr)}}
-
-#loginScreen {position:fixed;inset:0;background:#173f63;display:flex;align-items:center;justify-content:center;z-index:9999;}
-.login-box {background:#fff;padding:30px;border-radius:12px;width:90%;max-width:350px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2);}
-.login-box input {width:100%;padding:12px;margin:15px 0;border:1px solid #ccc;border-radius:7px;text-align:center;font-size:18px;}
-.login-box button {width:100%;font-size:16px;}
-
-body.dark-mode {background:#121820;color:#e1e8ed;}
-body.dark-mode .panel {background:#1e2631;color:#e1e8ed;box-shadow:0 2px 10px rgba(0,0,0,0.4);}
-body.dark-mode .card {background:#26323d;color:#e1e8ed;}
-body.dark-mode th {background:#26323d;color:#e1e8ed;border-bottom-color:#323f4d;}
-body.dark-mode td {border-bottom-color:#323f4d;}
-body.dark-mode .slot {border-color:#323f4d;background:#1a222c;}
-body.dark-mode .slot.avail {background:#1a2a22;}
-body.dark-mode .slot.booked {background:#1a2736;}
-body.dark-mode input, body.dark-mode select, body.dark-mode textarea {background:#26323d;color:#fff;border-color:#323f4d;}
+#loginScreen{position:fixed;inset:0;background:#173f63;display:flex;align-items:center;justify-content:center;z-index:9999}
+.login-box{background:#fff;padding:30px;border-radius:12px;width:90%;max-width:350px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2)}
+.login-box input{width:100%;padding:12px;margin:15px 0;border:1px solid #ccc;border-radius:7px;text-align:center;font-size:18px}
+.login-box button{width:100%;font-size:16px}
 </style>
 </head>
-<body onload="checkThemeInit()">
+<body>
 
 <div id="loginScreen">
   <div class="login-box">
     <h2>🔒 Padel Manager</h2>
-    <p class="muted">النظام محمي بكلمة مرور مركزية</p>
-    <input type="password" id="passInput" placeholder="أدخل كلمة المرور..." onkeypress="if(event.key==='Enter') checkLogin()">
-    <button class="primary" onclick="checkLogin()">تسجيل الدخول</button>
+    <p class="muted">أدخل كلمة المرور للمتابعة</p>
+    <input type="password" id="passInput" placeholder="كلمة المرور..." onkeypress="if(event.key==='Enter') checkLogin()">
+    <button class="primary" onclick="checkLogin()">دخول</button>
   </div>
 </div>
 
 <div id="mainApp" class="hidden">
 <header>
-  <h1>🏟️ Padel Manager — السحابي</h1>
-  <div style="display:flex; gap:10px; align-items:center;">
-    <span id="sync-status">🟢 متصل بالسحاب</span>
-    <div id="clock"></div>
-    <button onclick="toggleDarkMode()" id="themeBtn" style="background:transparent;color:#fff;border:1px solid #fff;border-radius:5px;cursor:pointer;padding:3px 8px;font-size:12px;">🌙</button>
-    <button onclick="logout()" style="background:transparent;color:#fff;border:1px solid #fff;border-radius:5px;cursor:pointer;padding:3px 8px;font-size:12px;">خروج</button>
-  </div>
+  <h1>🏟️ Padel Manager</h1>
+  <div><button onclick="logout()" style="background:transparent;color:#fff;border:1px solid #fff;border-radius:5px;cursor:pointer;padding:5px 10px;">خروج</button></div>
 </header>
 <div class="wrap">
 <div class="tabs">
 <button class="active" onclick="showTab('dashboard',this)">الرئيسية</button>
 <button onclick="showTab('bookings',this)">الحجوزات</button>
-<button onclick="showTab('customers',this)">العملاء</button>
-<button onclick="showTab('expenses',this)">المصروفات</button>
-<button onclick="showTab('reports',this)">التقارير</button>
 <button onclick="backup()">نسخة احتياطية</button>
 </div>
-
 <section id="dashboard" class="tab">
-<div class="panel"><div class="actions"><label>التاريخ <input id="dashDate" type="date" onchange="renderAll()"></label><button class="primary" onclick="newBooking()">+ حجز جديد</button></div></div>
-<div class="cards">
-<div class="card">حجوزات اليوم<b id="dCount">0</b></div><div class="card">ساعات اللعب<b id="dHours">0</b></div><div class="card">إجمالي الحجوزات<b id="dRevenue">0</b></div><div class="card">المحصل<b id="dPaid">0</b></div><div class="card">المتبقي<b id="dDue">0</b></div>
-</div>
 <div class="panel"><h3>جدول اليوم</h3><div id="slots" class="hourgrid"></div></div>
 </section>
-
 <section id="bookings" class="tab hidden">
-<div class="panel"><div class="actions"><label>التاريخ <input id="bookDate" type="date" onchange="renderBookings()"></label><button class="primary" onclick="newBooking()">+ إضافة حجز</button></div>
-<table><thead><tr><th>التاريخ</th><th>الوقت</th><th>المدة</th><th>العميل</th><th>الهاتف</th><th>الإجمالي</th><th>المدفوع</th><th>الباقي</th><th>الحالة</th><th>إجراءات</th></tr></thead><tbody id="bookingRows"></tbody></table></div>
-</section>
-
-<section id="customers" class="tab hidden">
-<div class="panel"><h3>إضافة / تعديل عميل</h3><div class="form">
-<label>الاسم<input id="cName"></label><label>رقم الهاتف<input id="cPhone" inputmode="tel"></label>
-<div class="full actions"><button class="primary" onclick="saveCustomer()">حفظ العميل</button><button onclick="clearCustomer()">مسح</button></div>
-</div></div>
-<div class="panel"><table><thead><tr><th>الاسم</th><th>الهاتف</th><th>مرات اللعب</th><th>الساعات</th><th>المدفوع</th><th>آخر زيارة</th><th>إجراءات</th></tr></thead><tbody id="customerRows"></tbody></table></div>
-</section>
-
-<section id="expenses" class="tab hidden">
-<div class="panel"><h3>تسجيل مصروف</h3><div class="form">
-<label>التاريخ<input id="eDate" type="date"></label><label>البند<input id="eItem"></label><label>القيمة<input id="eAmount" type="number" min="0"></label><label>ملاحظات<input id="eNote"></label>
-<div class="full"><button class="primary" onclick="saveExpense()">حفظ المصروف</button></div></div></div>
-<div class="panel"><table><thead><tr><th>التاريخ</th><th>البند</th><th>القيمة</th><th>ملاحظات</th><th></th></tr></thead><tbody id="expenseRows"></tbody></table></div>
-</section>
-
-<section id="reports" class="tab hidden">
-<div class="panel"><h3>التقرير</h3><div class="form">
-<label>من<input id="rFrom" type="date"></label><label>إلى<input id="rTo" type="date"></label>
-</div><br><div id="reportCards" class="cards"></div></div>
-<div class="panel"><h3>ملخص العملاء</h3><div id="reportText"></div></div>
+<div class="panel"><table><thead><tr><th>التاريخ</th><th>الوقت</th><th>العميل</th></tr></thead><tbody id="bookingRows"></tbody></table></div>
 </section>
 </div>
 </div>
-
-<button class="fab hidden" id="fabBtn" onclick="newBooking()" title="حجز سريع">+</button>
-
-<div id="modal" class="hidden" style="position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:20px;z-index:999;">
-<div class="panel" style="max-width:650px;width:100%;max-height:90vh;overflow:auto">
-<h2 id="modalTitle">حجز جديد</h2>
-<div class="form">
-<input id="bId" type="hidden">
-<label>التاريخ<input id="bDate" type="date"></label>
-<label>وقت البداية<select id="bStart"></select></label>
-<label>مدة اللعب<select id="bDuration"><option value="1">1 ساعة</option><option value="1.5">1.5 ساعة</option><option value="2">2 ساعة</option><option value="2.5">2.5 ساعة</option><option value="3">3 ساعات</option><option value="4">4 ساعات</option></select></label>
-<label>العميل<select id="bCustomer" onchange="phoneAuto()"></select></label>
-<label>رقم الهاتف<input id="bPhone" readonly></label>
-<label>سعر الساعة<input id="bRate" type="number" min="0" value="400"></label>
-<label>المدفوع<input id="bPaid" type="number" min="0" value="0"></label>
-<label>الحالة<select id="bStatus"><option>مؤكد</option><option>عربون</option><option>مكتمل</option><option>ملغي</option><option>صيانة</option></select></label>
-<label class="full">ملاحظات<textarea id="bNotes"></textarea></label>
-</div>
-<div class="actions"><button class="primary" onclick="saveBooking()">حفظ الحجز</button><button onclick="closeModal()">إلغاء</button></div>
-</div></div>
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyuGrOGVMHU6XVLtqbAokNo3S7CUFS0TeH9oLoUFRYbo04GwQfowv0_1fHcpCM7tUWI/exec";
 const ADMIN_PASS = "Padel@2026"; 
-const AUTH_KEY = "padel_auth_v4";
+const AUTH_KEY = "padel_auth_v5";
 
 const $=id=>document.getElementById(id);
 
-let inactivityTimer;
-function resetInactivityTimer() {
-  clearTimeout(inactivityTimer);
-  inactivityTimer = setTimeout(() => {
-    if (!document.getElementById('loginScreen').classList.contains('hidden')) return;
-    logout();
-  }, 10 * 60 * 1000);
-}
-
 window.onload = () => {
-  const savedKey = localStorage.getItem(AUTH_KEY);
-  if (savedKey === ADMIN_PASS) {
+  if (localStorage.getItem(AUTH_KEY) === ADMIN_PASS) {
     startApp();
   } else {
     logout();
@@ -155,12 +71,11 @@ window.onload = () => {
 };
 
 function checkLogin() {
-  const enteredPass = $('passInput').value;
-  if (enteredPass === ADMIN_PASS) {
-    localStorage.setItem(AUTH_KEY, enteredPass);
+  if ($('passInput').value === ADMIN_PASS) {
+    localStorage.setItem(AUTH_KEY, ADMIN_PASS);
     startApp();
   } else {
-    alert('❌ كلمة المرور غير صحيحة!');
+    alert('كلمة المرور غير صحيحة');
     $('passInput').value = '';
   }
 }
@@ -169,156 +84,39 @@ function logout() {
   localStorage.removeItem(AUTH_KEY);
   $('loginScreen').classList.remove('hidden');
   $('mainApp').classList.add('hidden');
-  $('fabBtn').classList.add('hidden');
 }
 
 function startApp() {
   $('loginScreen').classList.add('hidden');
   $('mainApp').classList.remove('hidden');
-  $('fabBtn').classList.remove('hidden');
-  init();
-  ['mousemove', 'keydown', 'click', 'touchstart'].forEach(e => {
-    window.addEventListener(e, resetInactivityTimer);
-  });
-  resetInactivityTimer();
+  loadData();
 }
 
-let db = {customers:[], bookings:[], expenses:[], settings:{rate:400}};
-let editCustomerId = null;
-const money=n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2})+' ج';
-const isoToday=()=>new Date().toISOString().slice(0,10);
-const statusClass=s=>s==='مؤكد'?'confirmed':s==='عربون'?'deposit':s==='مكتمل'?'done':s==='صيانة'?'maintenance':'cancel';
-
+let db = {customers:[], bookings:[], expenses:[]};
 async function loadData() {
   try {
     const res = await fetch(SCRIPT_URL);
     const json = await res.json();
-    if(json && json.bookings) { db = json; }
-  } catch(e) {}
-  if(!db.settings) db.settings = {rate:400};
-  if(!db.customers) db.customers = [];
-  if(!db.bookings) db.bookings = [];
-  if(!db.expenses) db.expenses = [];
-  renderAll();
+    if(json && json.bookings) db = json;
+  } catch(e){}
+  renderDashboard();
 }
 
-async function syncData() {
-  renderAll();
-  try {
-    await fetch(SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(db)
-    });
-  } catch(e) {}
+function showTab(id,btn){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));
+  $(id).classList.remove('hidden');
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));
+  btn.classList.add('active');
 }
-
-function showTab(id,btn){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));$(id).classList.remove('hidden');document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');renderAll()}
-
-async function init(){
- ['dashDate','bookDate','eDate'].forEach(x=>$(x).value=isoToday());
- $('rFrom').value=isoToday().slice(0,8)+'01'; $('rTo').value=isoToday();
- for(let h=8;h<=23;h++) $('bStart').insertAdjacentHTML('beforeend',`<option value="${h}">${String(h).padStart(2,'0')}:00</option>`);
- setInterval(()=>{$('clock').textContent=new Date().toLocaleString('en-GB',{dateStyle:'medium',timeStyle:'short'})},1000);
- await loadData();
- setInterval(loadData, 10000);
-}
-
-function renderAll(){renderDashboard();renderBookings();renderCustomers();renderExpenses();renderReports();fillCustomers()}
-function fillCustomers(){
- const cur=$('bCustomer').value; $('bCustomer').innerHTML='<option value="">— اختر العميل —</option>'+db.customers.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join(''); if(cur) $('bCustomer').value=cur; phoneAuto()
-}
-function phoneAuto(){const c=db.customers.find(x=>x.id==$('bCustomer').value);$('bPhone').value=c?.phone||''}
-function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function getDayBookings(d){return db.bookings.filter(b=>b.date===d && b.status!=='ملغي')}
 
 function renderDashboard(){
- const d=$('dashDate').value||isoToday(), bs=getDayBookings(d); let rev=0,paid=0,hours=0;
- bs.forEach(b=>{if(b.status!=='صيانة'){hours+=+b.duration;rev+=+b.rate*+b.duration;paid+=+b.paid}});
- $('dCount').textContent=bs.filter(b=>b.status!=='صيانة').length;$('dHours').textContent=hours;$('dRevenue').textContent=money(rev);$('dPaid').textContent=money(paid);$('dDue').textContent=money(rev-paid);
- let html=''; 
- for(let h=8;h<=23;h++){
-   let b=bs.find(x=>+x.start===h);
-   let active=bs.find(x=>h>=+x.start && h<+x.start+ +x.duration);
-   let slotClass = 'avail';
-   let slotText = 'متاح';
-   if(active) {
-     if(active.status==='صيانة') { slotClass='main-slot'; slotText='🛠️ صيانة'; }
-     else { slotClass='booked'; slotText=esc(db.customers.find(c=>c.id==active.customerId)?.name||''); }
-   }
-   html+=`<div class="slot ${slotClass}" onclick="${b?`editBooking('${b.id}')`:`newBooking(${h})`}"><strong>${String(h).padStart(2,'0')}:00</strong><small>${slotText}</small></div>`;
- }
- $('slots').innerHTML=html;
-}
-
-function renderBookings(){
- const d=$('bookDate').value||isoToday(), bs=db.bookings.filter(b=>b.date===d).sort((a,b)=>a.start-b.start);
- $('bookingRows').innerHTML=bs.map(b=>{
-   let c=db.customers.find(x=>x.id==b.customerId)||{};
-   let total=b.rate*b.duration;
-   let isMaint = b.status==='صيانة';
-   let waBtn = (!isMaint && c.phone) ? `<a class="whatsapp-btn" href="https://wa.me/2${c.phone}?text=${encodeURIComponent('أهلاً بك يا ' + c.name + '، نذكرك بحجزك في ملعب Padel Manager يوم ' + b.date + ' الساعة ' + String(b.start).padStart(2,'0') + ':00')}" target="_blank">💬 واتساب</a>` : '';
-   return `<tr><td>${formatDate(b.date)}</td><td>${String(b.start).padStart(2,'0')}:00</td><td>${b.duration} ساعة</td><td>${isMaint?'🛠️ صيانة الملعب':esc(c.name)}</td><td>${isMaint?'-':esc(c.phone||'')}</td><td>${money(total)}</td><td>${money(b.paid)}</td><td>${money(total-b.paid)}</td><td><span class="badge ${statusClass(b.status)}">${b.status}</span></td><td><div class="actions">${waBtn}<button onclick="editBooking('${b.id}')">تعديل</button><button class="danger" onclick="deleteBooking('${b.id}')">حذف</button></div></td></tr>`
- }).join('')||'<tr><td colspan="10" class="muted">لا توجد حجوزات</td></tr>';
-}
-
-function newBooking(hour){
- $('modalTitle').textContent='حجز جديد';$('bId').value='';$('bDate').value=$('dashDate').value||isoToday();$('bStart').value=hour||18;$('bDuration').value='1';$('bRate').value=db.settings.rate;$('bPaid').value=0;$('bStatus').value='مؤكد';$('bNotes').value='';$('bCustomer').value='';phoneAuto();$('modal').classList.remove('hidden')
-}
-function editBooking(id){
- const b=db.bookings.find(x=>x.id===id);if(!b)return; $('modalTitle').textContent='تعديل الحجز';$('bId').value=id;$('bDate').value=b.date;$('bStart').value=b.start;$('bDuration').value=b.duration;$('bRate').value=b.rate;$('bPaid').value=b.paid;$('bStatus').value=b.status;$('bNotes').value=b.notes||'';fillCustomers();$('bCustomer').value=b.customerId;phoneAuto();$('modal').classList.remove('hidden')
-}
-function closeModal(){$('modal').classList.add('hidden')}
-function saveBooking(){
- const id=$('bId').value||crypto.randomUUID(), date=$('bDate').value,start=+$('bStart').value,duration=+$('bDuration').value,cid=$('bCustomer').value,rate=+$('bRate').value,paid=+$('bPaid').value,status=$('bStatus').value;
- if(status!=='صيانة'&&(!date||!cid||!rate)){alert('أكمل التاريخ والعميل والسعر');return}
- if(status===='صيانة'&&!date){alert('اختر التاريخ');return}
- if(start+duration>24){alert('المدة تتجاوز منتصف الليل');return}
- const conflict=db.bookings.find(x=>x.id!==id&&x.date===date&&x.status!=='ملغي'&&start < (+x.start + +x.duration)&&(+x.start)<start+duration);
- if(conflict){alert('⚠️ يوجد حجز أو صيانة متعارضة في هذا الوقت.');return}
- const obj={id,date,start,duration,customerId:cid||'MAINT',rate:status===='صيانة'?0:rate,paid:status===='صيانة'?0:paid,status,notes:$('bNotes').value};
- const i=db.bookings.findIndex(x=>x.id===id);if(i>=0)db.bookings[i]=obj;else db.bookings.push(obj);
- syncData(); closeModal(); $('dashDate').value=date; $('bookDate').value=date;
-}
-function deleteBooking(id){if(confirm('حذف الحجز؟')){db.bookings=db.bookings.filter(x=>x.id!==id);syncData()}}
-function saveCustomer(){let name=$('cName').value.trim(),phone=$('cPhone').value.trim();if(!name){alert('اكتب اسم العميل');return}
- if(editCustomerId){let c=db.customers.find(x=>x.id===editCustomerId);c.name=name;c.phone=phone}else{if(db.customers.some(c=>c.name===name)){alert('العميل موجود بالفعل');return}db.customers.push({id:crypto.randomUUID(),name,phone})}
- syncData();clearCustomer();
-}
-function editCustomer(id){let c=db.customers.find(x=>x.id===id);editCustomerId=id;$('cName').value=c.name;$('cPhone').value=c.phone||''}
-function clearCustomer(){editCustomerId=null;$('cName').value='';$('cPhone').value=''}
-function deleteCustomer(id){if(db.bookings.some(b=>b.customerId===id)){alert('لا يمكن حذف العميل لأن له حجوزات مسجلة.');return}db.customers=db.customers.filter(c=>c.id!==id);syncData()}
-function renderCustomers(){
- $('customerRows').innerHTML=db.customers.map(c=>{let bs=db.bookings.filter(b=>b.customerId===c.id&&b.status!=='ملغي');let hours=bs.reduce((s,b)=>s+ +b.duration,0),paid=bs.reduce((s,b)=>s+ +b.paid,0),last=bs.map(b=>b.date).sort().pop()||'';return `<tr><td>${esc(c.name)}</td><td>${esc(c.phone||'')}</td><td>${bs.length}</td><td>${hours}</td><td>${money(paid)}</td><td>${last?formatDate(last):'-'}</td><td><button onclick="editCustomer('${c.id}')">تعديل</button> <button class="danger" onclick="deleteCustomer('${c.id}')">حذف</button></td></tr>`}).join('')||'<tr><td colspan="7">لا يوجد عملاء</td></tr>'
-}
-function saveExpense(){let d=$('eDate').value,item=$('eItem').value.trim(),amount=+$('eAmount').value;if(!d||!item||!amount){alert('أكمل بيانات المصروف');return}db.expenses.push({id:crypto.randomUUID(),date:d,item,amount,note:$('eNote').value});syncData();$('eItem').value='';$('eAmount').value='';$('eNote').value=''}
-function deleteExpense(id){db.expenses=db.expenses.filter(x=>x.id!==id);syncData()}
-function renderExpenses(){$('expenseRows').innerHTML=db.expenses.sort((a,b)=>b.date.localeCompare(b.date)).map(e=>`<tr><td>${formatDate(e.date)}</td><td>${esc(e.item)}</td><td>${money(e.amount)}</td><td>${esc(e.note||'')}</td><td><button class="danger" onclick="deleteExpense('${e.id}')">حذف</button></td></tr>`).join('')||'<tr><td colspan="5">لا توجد مصروفات</td></tr>'}
-function renderReports(){
- let from=$('rFrom').value, to=$('rTo').value;
- let bs=db.bookings.filter(b=>b.date>=from && b.date<=to && b.status!=='ملغي' && b.status!=='صيانة');
- let ex=db.expenses.filter(e=>e.date>=from && e.date<=to);
- let hours=bs.reduce((s,b)=>s+ +b.duration,0), rev=bs.reduce((s,b)=>s+b.rate*b.duration,0), paid=bs.reduce((s,b)=>s+ +b.paid,0), expenses=ex.reduce((s,e)=>s+ +e.amount,0);
- $('reportCards').innerHTML=`<div class="card">الحجوزات<b>${bs.length}</b></div><div class="card">الساعات<b>${hours}</b></div><div class="card">الإيرادات<b>${money(rev)}</b></div><div class="card">المحصل<b>${money(paid)}</b></div><br><div class="card">صافي بعد المصروفات<b>${money(rev-expenses)}</b></div>`;
- let top=db.customers.map(c=>{let n=bs.filter(b=>b.customerId===c.id).length;return [c.name,n]}).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]).slice(0,10);$('reportText').innerHTML=top.length?'<ol>'+top.map(x=>`<li>${esc(x[0])} — ${x[1]} حجز</li>`).join('')+'</ol>':'لا توجد بيانات في الفترة المحددة';
-}
-function formatDate(s){return new Date(s+'T00:00:00').toLocaleDateString('en-US',{day:'2-digit',month:'short',year:'numeric'})}
-function backup(){let blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='padel-backup-'+isoToday()+'.json';a.click()}
-
-function toggleDarkMode() {
-  document.body.classList.toggle('dark-mode');
-  const isDark = document.body.classList.contains('dark-mode');
-  localStorage.setItem('padel_dark_mode', isDark ? 'yes' : 'no');
-  $('themeBtn').textContent = isDark ? '☀️' : '🌙';
-}
-function checkThemeInit() {
-  if (localStorage.getItem('padel_dark_mode') === 'yes') {
-    document.body.classList.add('dark-mode');
-    const btn = $('themeBtn');
-    if(btn) btn.textContent = '☀️';
+  let html='';
+  for(let h=8;h<=23;h++){
+    html+=`<div class="slot avail"><strong>${String(h).padStart(2,'0')}:00</strong><small>متاح</small></div>`;
   }
+  $('slots').innerHTML=html;
 }
+function backup(){let blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='backup.json';a.click()}
 </script>
 </body>
 </html>
