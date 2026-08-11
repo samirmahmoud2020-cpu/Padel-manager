@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Padel Manager — السحابي</title>
+<title>Padel Manager — الآمن</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#f3f6f9;color:#1d2733}
 header{background:#173f63;color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center}
@@ -20,14 +20,34 @@ table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:9px;bord
 .hidden{display:none!important}.actions{display:flex;gap:7px;flex-wrap:wrap}
 #sync-status{font-size:12px;background:#1b6ca8;padding:5px 10px;border-radius:6px;color:#fff;font-weight:bold}
 @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}.hourgrid{grid-template-columns:repeat(2,1fr)}}
+
+/* تصميم شاشة القفل */
+#loginScreen {position:fixed;inset:0;background:#173f63;display:flex;align-items:center;justify-content:center;z-index:9999;}
+.login-box {background:#fff;padding:30px;border-radius:12px;width:90%;max-width:350px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2);}
+.login-box input {width:100%;padding:12px;margin:15px 0;border:1px solid #ccc;border-radius:7px;text-align:center;font-size:18px;}
+.login-box button {width:100%;font-size:16px;}
 </style>
 </head>
 <body>
+
+<!-- شاشة تسجيل الدخول (القفل) -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h2>🔒 Padel Manager</h2>
+    <p class="muted">النظام محمي بكلمة مرور</p>
+    <input type="password" id="passInput" placeholder="أدخل كلمة المرور..." onkeypress="if(event.key==='Enter') checkLogin()">
+    <button class="primary" onclick="checkLogin()">تسجيل الدخول</button>
+  </div>
+</div>
+
+<!-- البرنامج نفسه (مخفي في البداية) -->
+<div id="mainApp" class="hidden">
 <header>
-  <h1>🏟️ Padel Manager — السحابي</h1>
+  <h1>🏟️ Padel Manager</h1>
   <div style="display:flex; gap:10px; align-items:center;">
     <span id="sync-status">🟢 متصل بالسحاب</span>
     <div id="clock"></div>
+    <button onclick="logout()" style="background:transparent;color:#fff;border:1px solid #fff;border-radius:5px;cursor:pointer;padding:3px 8px;font-size:12px;">خروج</button>
   </div>
 </header>
 <div class="wrap">
@@ -75,8 +95,10 @@ table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:9px;bord
 <div class="panel"><h3>ملخص العملاء</h3><div id="reportText"></div></div>
 </section>
 </div>
+</div> <!-- نهاية البرنامج -->
 
-<div id="modal" class="hidden" style="position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:20px">
+<!-- نافذة الحجز المنبثقة -->
+<div id="modal" class="hidden" style="position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:20px;z-index:999;">
 <div class="panel" style="max-width:650px;width:100%;max-height:90vh;overflow:auto">
 <h2 id="modalTitle">حجز جديد</h2>
 <div class="form">
@@ -96,25 +118,51 @@ table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:9px;bord
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyuGrOGVMHU6XVLtqbAokNo3S7CUFS0TeH9oLoUFRYbo04GwQfowv0_1fHcpCM7tUWI/exec";
+const ADMIN_PASS = "1596"; // 🔐 تقدر تغير الباسورد من هنا في أي وقت
 
+const $=id=>document.getElementById(id);
+
+// نظام الحماية وتسجيل الدخول
+window.onload = () => {
+  if (localStorage.getItem('padel_auth') === 'yes') {
+    startApp();
+  }
+};
+
+function checkLogin() {
+  if ($('passInput').value === ADMIN_PASS) {
+    localStorage.setItem('padel_auth', 'yes');
+    startApp();
+  } else {
+    alert('❌ كلمة المرور غير صحيحة!');
+    $('passInput').value = '';
+  }
+}
+
+function logout() {
+  localStorage.removeItem('padel_auth');
+  location.reload();
+}
+
+function startApp() {
+  $('loginScreen').classList.add('hidden');
+  $('mainApp').classList.remove('hidden');
+  init(); // بدأ تحميل البيانات فقط بعد إدخال الباسورد
+}
+
+// باقي كود البرنامج الأساسي
 let db = {customers:[], bookings:[], expenses:[], settings:{rate:400}};
 let editCustomerId = null;
-const $=id=>document.getElementById(id);
 const money=n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2})+' ج';
 const isoToday=()=>new Date().toISOString().slice(0,10);
 const statusClass=s=>s==='مؤكد'?'confirmed':s==='عربون'?'deposit':s==='مكتمل'?'done':'cancel';
 
-// تحميل البيانات من جوجل شيت أونلاين
 async function loadData() {
   try {
     const res = await fetch(SCRIPT_URL);
     const json = await res.json();
-    if(json && json.bookings) {
-      db = json;
-    }
-  } catch(e) {
-    console.log("Loading from local fallback due to network");
-  }
+    if(json && json.bookings) { db = json; }
+  } catch(e) {}
   if(!db.settings) db.settings = {rate:400};
   if(!db.customers) db.customers = [];
   if(!db.bookings) db.bookings = [];
@@ -122,9 +170,8 @@ async function loadData() {
   renderAll();
 }
 
-// مزامنة وحفظ البيانات في جوجل شيت أونلاين فوراً
 async function syncData() {
-  renderAll(); // تحديث فوري للشاشة محلياً أولاً لسرعة الاستجابة
+  renderAll();
   try {
     await fetch(SCRIPT_URL, {
       method: 'POST',
@@ -132,9 +179,7 @@ async function syncData() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(db)
     });
-  } catch(e) {
-    console.error("Sync error", e);
-  }
+  } catch(e) {}
 }
 
 function showTab(id,btn){document.querySelectorAll('.tab').forEach(x=>x.classList.add('hidden'));$(id).classList.remove('hidden');document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');renderAll()}
@@ -145,7 +190,6 @@ async function init(){
  for(let h=8;h<=23;h++) $('bStart').insertAdjacentHTML('beforeend',`<option value="${h}">${String(h).padStart(2,'0')}:00</option>`);
  setInterval(()=>{$('clock').textContent=new Date().toLocaleString('en-GB',{dateStyle:'medium',timeStyle:'short'})},1000);
  await loadData();
- // تحديث تلقائي كل 10 ثواني عشان لو الموبايل كتب حاجة اللاب يشوفها فوراً
  setInterval(loadData, 10000);
 }
 
@@ -154,8 +198,9 @@ function fillCustomers(){
  const cur=$('bCustomer').value; $('bCustomer').innerHTML='<option value="">— اختر العميل —</option>'+db.customers.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join(''); if(cur) $('bCustomer').value=cur; phoneAuto()
 }
 function phoneAuto(){const c=db.customers.find(x=>x.id==$('bCustomer').value);$('bPhone').value=c?.phone||''}
-function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;`'}[m]))}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function getDayBookings(d){return db.bookings.filter(b=>b.date===d && b.status!=='ملغي')}
+
 function renderDashboard(){
  const d=$('dashDate').value||isoToday(), bs=getDayBookings(d); let rev=0,paid=0,hours=0;
  bs.forEach(b=>{hours+=+b.duration;rev+=+b.rate*+b.duration;paid+=+b.paid});
@@ -164,10 +209,12 @@ function renderDashboard(){
  html+=`<div class="slot ${active?'booked':'avail'}" onclick="${b?`editBooking('${b.id}')`:`newBooking(${h})`}"><strong>${String(h).padStart(2,'0')}:00</strong><small>${active?esc(db.customers.find(c=>c.id==active.customerId)?.name||''): 'متاح'}</small></div>`}
  $('slots').innerHTML=html;
 }
+
 function renderBookings(){
  const d=$('bookDate').value||isoToday(), bs=db.bookings.filter(b=>b.date===d).sort((a,b)=>a.start-b.start);
  $('bookingRows').innerHTML=bs.map(b=>{let c=db.customers.find(x=>x.id==b.customerId)||{};let total=b.rate*b.duration;return `<tr><td>${formatDate(b.date)}</td><td>${String(b.start).padStart(2,'0')}:00</td><td>${b.duration} ساعة</td><td>${esc(c.name)}</td><td>${esc(c.phone||'')}</td><td>${money(total)}</td><td>${money(b.paid)}</td><td>${money(total-b.paid)}</td><td><span class="badge ${statusClass(b.status)}">${b.status}</span></td><td><div class="actions"><button onclick="editBooking('${b.id}')">تعديل</button><button class="danger" onclick="deleteBooking('${b.id}')">حذف</button></div></td></tr>`}).join('')||'<tr><td colspan="10" class="muted">لا توجد حجوزات</td></tr>';
 }
+
 function newBooking(hour){
  $('modalTitle').textContent='حجز جديد';$('bId').value='';$('bDate').value=$('dashDate').value||isoToday();$('bStart').value=hour||18;$('bDuration').value='1';$('bRate').value=db.settings.rate;$('bPaid').value=0;$('bStatus').value='مؤكد';$('bNotes').value='';$('bCustomer').value='';phoneAuto();$('modal').classList.remove('hidden')
 }
@@ -204,7 +251,6 @@ function renderReports(){let from=$('rFrom').value,to=$('rTo').value,bs=db.booki
  let top=db.customers.map(c=>{let n=bs.filter(b=>b.customerId===c.id).length;return [c.name,n]}).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]).slice(0,10);$('reportText').innerHTML=top.length?'<ol>'+top.map(x=>`<li>${esc(x[0])} — ${x[1]} حجز</li>`).join('')+'</ol>':'لا توجد بيانات في الفترة المحددة'}
 function formatDate(s){return new Date(s+'T00:00:00').toLocaleDateString('en-US',{day:'2-digit',month:'short',year:'numeric'})}
 function backup(){let blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='padel-backup-'+isoToday()+'.json';a.click()}
-init();
 </script>
 </body>
 </html>
