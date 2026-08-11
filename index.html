@@ -132,7 +132,7 @@ body.dark-mode input, body.dark-mode select, body.dark-mode textarea {background
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyuGrOGVMHU6XVLtqbAokNo3S7CUFS0TeH9oLoUFRYbo04GwQfowv0_1fHcpCM7tUWI/exec";
 const ADMIN_PASS = "Padel@2026"; 
-const AUTH_KEY = "padel_auth_v3";
+const AUTH_KEY = "padel_auth_v4";
 
 const $=id=>document.getElementById(id);
 
@@ -295,9 +295,14 @@ function renderCustomers(){
 function saveExpense(){let d=$('eDate').value,item=$('eItem').value.trim(),amount=+$('eAmount').value;if(!d||!item||!amount){alert('أكمل بيانات المصروف');return}db.expenses.push({id:crypto.randomUUID(),date:d,item,amount,note:$('eNote').value});syncData();$('eItem').value='';$('eAmount').value='';$('eNote').value=''}
 function deleteExpense(id){db.expenses=db.expenses.filter(x=>x.id!==id);syncData()}
 function renderExpenses(){$('expenseRows').innerHTML=db.expenses.sort((a,b)=>b.date.localeCompare(b.date)).map(e=>`<tr><td>${formatDate(e.date)}</td><td>${esc(e.item)}</td><td>${money(e.amount)}</td><td>${esc(e.note||'')}</td><td><button class="danger" onclick="deleteExpense('${e.id}')">حذف</button></td></tr>`).join('')||'<tr><td colspan="5">لا توجد مصروفات</td></tr>'}
-function renderReports(){let from=$('rFrom').value,to=$('rTo').value,bs=db.bookings.filter(b=>b.date>=from&&b.date<=to&&b.status!=='ملغي&&b.status!=='صيانة'),ex=db.expenses.filter(e=>e.date>=from&&e.date<=to),hours=bs.reduce((s,b)=>s+ +b.duration,0),rev=bs.reduce((s,b)=>s+b.rate*b.duration,0),paid=bs.reduce((s,b)=>s+ +b.paid,0),expenses=ex.reduce((s,e)=>s+ +e.amount,0);
+function renderReports(){
+ let from=$('rFrom').value, to=$('rTo').value;
+ let bs=db.bookings.filter(b=>b.date>=from && b.date<=to && b.status!=='ملغي' && b.status!=='صيانة');
+ let ex=db.expenses.filter(e=>e.date>=from && e.date<=to);
+ let hours=bs.reduce((s,b)=>s+ +b.duration,0), rev=bs.reduce((s,b)=>s+b.rate*b.duration,0), paid=bs.reduce((s,b)=>s+ +b.paid,0), expenses=ex.reduce((s,e)=>s+ +e.amount,0);
  $('reportCards').innerHTML=`<div class="card">الحجوزات<b>${bs.length}</b></div><div class="card">الساعات<b>${hours}</b></div><div class="card">الإيرادات<b>${money(rev)}</b></div><div class="card">المحصل<b>${money(paid)}</b></div><br><div class="card">صافي بعد المصروفات<b>${money(rev-expenses)}</b></div>`;
- let top=db.customers.map(c=>{let n=bs.filter(b=>b.customerId===c.id).length;return [c.name,n]}).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]).slice(0,10);$('reportText').innerHTML=top.length?'<ol>'+top.map(x=>`<li>${esc(x[0])} — ${x[1]} حجز</li>`).join('')+'</ol>':'لا توجد بيانات في الفترة المحددة'}
+ let top=db.customers.map(c=>{let n=bs.filter(b=>b.customerId===c.id).length;return [c.name,n]}).filter(x=>x[1]).sort((a,b)=>b[1]-a[1]).slice(0,10);$('reportText').innerHTML=top.length?'<ol>'+top.map(x=>`<li>${esc(x[0])} — ${x[1]} حجز</li>`).join('')+'</ol>':'لا توجد بيانات في الفترة المحددة';
+}
 function formatDate(s){return new Date(s+'T00:00:00').toLocaleDateString('en-US',{day:'2-digit',month:'short',year:'numeric'})}
 function backup(){let blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='padel-backup-'+isoToday()+'.json';a.click()}
 
