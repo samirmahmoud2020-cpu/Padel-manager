@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Padel Manager — السحابي المؤمن</title>
+<title>Padel Manager — Elkerdasy</title>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#f3f6f9;color:#1d2733}
 header{background:#173f63;color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center}
@@ -34,7 +34,7 @@ table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:9px;bord
 <div id="loginScreen">
   <div class="login-box">
     <h2>🔒 Padel Manager</h2>
-    <p class="muted">النظام محمي بكلمة مرور</p>
+    <p class="muted">النظام محمي بكلمة مرور مركزية</p>
     <input type="password" id="passInput" placeholder="أدخل كلمة المرور..." onkeypress="if(event.key==='Enter') checkLogin()">
     <button class="primary" onclick="checkLogin()">تسجيل الدخول</button>
   </div>
@@ -43,9 +43,9 @@ table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:9px;bord
 <!-- البرنامج الأصلي كاملاً -->
 <div id="mainApp" class="hidden">
 <header>
-  <h1>🏟️ Padel Manager — السحابي</h1>
+  <h1>🏟️ Padel Manager — Elkerdasy</h1>
   <div style="display:flex; gap:10px; align-items:center;">
-    <span id="sync-status">🟢 متصل بالسحاب</span>
+    <span id="sync-status">🟢 متصل </span>
     <div id="clock"></div>
     <button onclick="logout()" style="background:transparent;color:#fff;border:1px solid #fff;border-radius:5px;cursor:pointer;padding:3px 8px;font-size:12px;">خروج</button>
   </div>
@@ -117,20 +117,24 @@ table{width:100%;border-collapse:collapse;margin-top:10px}th,td{padding:9px;bord
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyuGrOGVMHU6XVLtqbAokNo3S7CUFS0TeH9oLoUFRYbo04GwQfowv0_1fHcpCM7tUWI/exec";
-const ADMIN_PASS = "Padel@2026"; // 🔐 الباسورد الحالي (تقدر تغيره لأي وقت)
+const ADMIN_PASS = "Padel@20266"; // 🔐 الباسورد الحالي (لو غيرته هنا، هيتم خروج تلقائي من كل الأجهزة)
 
 const $=id=>document.getElementById(id);
 
-// نظام الحماية وتسجيل الدخول
+// نظام الحماية وتسجيل الدخول مع التحقق من البصمة للتحديث التلقائي
 window.onload = () => {
-  if (localStorage.getItem('padel_auth') === 'yes') {
+  const savedKey = localStorage.getItem('padel_auth_key');
+  if (savedKey && atob(savedKey) === ADMIN_PASS) {
     startApp();
+  } else {
+    logout();
   }
 };
 
 function checkLogin() {
-  if ($('passInput').value === ADMIN_PASS) {
-    localStorage.setItem('padel_auth', 'yes');
+  const enteredPass = $('passInput').value;
+  if (enteredPass === ADMIN_PASS) {
+    localStorage.setItem('padel_auth_key', btoa(enteredPass));
     startApp();
   } else {
     alert('❌ كلمة المرور غير صحيحة!');
@@ -139,8 +143,9 @@ function checkLogin() {
 }
 
 function logout() {
-  localStorage.removeItem('padel_auth');
-  location.reload();
+  localStorage.removeItem('padel_auth_key');
+  $('loginScreen').classList.remove('hidden');
+  $('mainApp').classList.add('hidden');
 }
 
 function startApp() {
